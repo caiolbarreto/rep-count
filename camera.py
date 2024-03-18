@@ -23,21 +23,52 @@ def main():
     if 'page' not in st.session_state:
         st.session_state['page'] = "Home"
 
+    st.title("Selecione um exercício")
     if st.session_state['page'] == "Home":
-        st.title("Selecione um exercício")
-        option = st.radio(
-            "Opções", ["Desenvolvimento", "Rosca direta", "Agachamento livre"])
+        exercicios_gifs = {
+            "Desenvolvimento": "https://www.mundoboaforma.com.br/wp-content/uploads/2020/12/desenvolvimento-para-ombros-com-halteres.gif",
+            "Rosca direta": "https://www.mundoboaforma.com.br/wp-content/uploads/2022/09/rosca-biceps-direta-com-halteres.gif",
+            "Agachamento livre": "https://www.mundoboaforma.com.br/wp-content/uploads/2020/11/agachamento-livre-1.gif",
+        }
 
-        # Track if the button has been clicked
-        button_clicked = st.button("Iniciar")
+        # Opções de exercícios
+        opcoes = ["Desenvolvimento", "Rosca direta", "Agachamento livre"]
 
-        # Check if the button has been clicked and change page accordingly
-        if button_clicked:
-            st.session_state['page'] = "Webcam"
-            st.rerun()
+        # Coluna para exibir o GIF
+        col1, col2 = st.columns(2)
+
+        # Exibe o GIF do exercício selecionado
+        with col1:
+            option = st.radio(
+                "Opções",
+                opcoes,
+                key="exercicio_selecionado",
+            )
+
+        with col2:
+            if option:
+                st.image(exercicios_gifs[option])
+                st.write(f"Exercício selecionado: {option}")
+
+        # Direcionamento para página específica do exercício
+        if option:
+            if option == "Desenvolvimento":
+                st.session_state['movimento'] = "Desenvolvimento"
+            elif option == "Rosca direta":
+                st.session_state['movimento'] = "RoscaDireta"
+            elif option == "Agachamento livre":
+                st.session_state['movimento'] = "AgachamentoLivre"
+
+            # Track if the button has been clicked
+            button_clicked = st.button("Iniciar")
+
+            # Check if the button has been clicked and change page accordingly
+            if button_clicked:
+                st.session_state['page'] = "Webcam"
+                st.rerun()
 
     if st.session_state['page'] == "Webcam":
-        st.title("Clique em iniciar para começar a gravação")
+        st.title("Clique em iniciar para começar sua sessão")
         webrtc_streamer(key="key", video_processor_factory=VideoProcessor,
                         rtc_configuration=RTCConfiguration(
                             {"iceServers": [
