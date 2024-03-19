@@ -12,10 +12,13 @@ exercises = [
 
 
 class VideoTransformer(VideoTransformerBase):
+    def __init__(self, exercise_index):
+        super().__init__()
+        self.exercise_index = exercise_index
+
     def transform(self, frame):
         img = frame.to_ndarray(format="bgr24")
-
-        return pose_detection(exercises[1], img)
+        return pose_detection(exercises[self.exercise_index], img)
 
 
 def main():
@@ -76,9 +79,10 @@ def main():
                 exercise_index = 2
 
             if exercise_index is not None:
+                video_transformer = VideoTransformer(exercise_index)
                 webrtc_streamer(
                     key="pose-detection",
-                    video_processor_factory=VideoTransformer,
+                    video_processor_factory=lambda: video_transformer,
                     rtc_configuration=RTCConfiguration(
                         {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
                     ),
