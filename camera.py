@@ -10,9 +10,10 @@ exercises = [
     Exercise(name="squat", start_angle=170, finish_angle=120),
 ]
 
+
 class VideoTransformer(VideoTransformerBase):
-    def _init_(self, exercise_index):
-        super()._init_()
+    def __init__(self, exercise_index):
+        super().__init__()
         self.exercise_index = exercise_index
         self.rep_count = 0
 
@@ -21,10 +22,12 @@ class VideoTransformer(VideoTransformerBase):
 
     def transform(self, frame):
         img = frame.to_ndarray(format="bgr24")
-        result_image, count = pose_detection(exercises[self.exercise_index], img)
+        result_image, count = pose_detection(
+            exercises[self.exercise_index], img)
         self.update_rep_count(count)
         return result_image
-    
+
+
 def main():
     if "page" not in st.session_state:
         st.session_state["page"] = "Home"
@@ -88,12 +91,13 @@ def main():
                     key="pose-detection",
                     video_processor_factory=lambda: video_transformer,
                     rtc_configuration=RTCConfiguration(
-                        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+                        {"iceServers": [
+                            {"urls": ["stun:stun.l.google.com:19302"]}]}
                     ),
                     media_stream_constraints={"video": {
-            "width": {"min": 1280, "ideal": 1280, "max": 1920 },
-            "height": {"min": 720, "ideal": 720, "max": 1080}},
-                     "audio": False},
+                        "width": {"min": 1280, "ideal": 1280, "max": 1920},
+                        "height": {"min": 720, "ideal": 720, "max": 1080}},
+                        "audio": False},
                     desired_playing_state=True,
                 )
 
@@ -108,5 +112,5 @@ def main():
             st.rerun()
 
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
