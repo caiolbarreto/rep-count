@@ -7,7 +7,7 @@ from pose_detection import pose_detection, Exercise
 exercises = [
     Exercise(name="shoulder_press", start_angle=70, finish_angle=150),
     Exercise(name="biceps_curl", start_angle=130, finish_angle=30),
-    Exercise(name="squat", start_angle=170, finish_angle=120),
+    Exercise(name="squat", start_angle=170, finish_angle=130),
 ]
 
 
