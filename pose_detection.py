@@ -99,4 +99,4 @@ def pose_detection(exercise: Exercise, img):
             cv2.LINE_AA,
         )
 
-    return image
+    return image, exercise.count

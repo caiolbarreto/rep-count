@@ -7,26 +7,30 @@ from pose_detection import pose_detection, Exercise
 exercises = [
     Exercise(name="shoulder_press", start_angle=70, finish_angle=150),
     Exercise(name="biceps_curl", start_angle=130, finish_angle=30),
-    Exercise(name="squat", start_angle=170, finish_angle=130),
+    Exercise(name="squat", start_angle=170, finish_angle=120),
 ]
 
-
 class VideoTransformer(VideoTransformerBase):
-    def __init__(self, exercise_index):
-        super().__init__()
+    def _init_(self, exercise_index):
+        super()._init_()
         self.exercise_index = exercise_index
+        self.rep_count = 0
+
+    def update_rep_count(self, count):
+        self.rep_count = count
 
     def transform(self, frame):
         img = frame.to_ndarray(format="bgr24")
-        return pose_detection(exercises[self.exercise_index], img)
-
-
+        result_image, count = pose_detection(exercises[self.exercise_index], img)
+        self.update_rep_count(count)
+        return result_image
+    
 def main():
     if "page" not in st.session_state:
         st.session_state["page"] = "Home"
 
-    st.title("Selecione um exercício")
     if st.session_state["page"] == "Home":
+        st.title("Selecione um exercício")
         exercicios_gifs = {
             "Desenvolvimento": "https://www.mundoboaforma.com.br/wp-content/uploads/2020/12/desenvolvimento-para-ombros-com-halteres.gif",
             "Rosca direta": "https://www.mundoboaforma.com.br/wp-content/uploads/2022/09/rosca-biceps-direta-com-halteres.gif",
@@ -67,7 +71,7 @@ def main():
                 st.rerun()
 
     if st.session_state["page"] == "Webcam":
-        st.title("Clique em iniciar para começar sua sessão")
+        st.title("Execute o seu treino!")
         selected_exercise = st.session_state.get("selected_exercise")
         if selected_exercise:
             exercise_index = None
@@ -86,12 +90,23 @@ def main():
                     rtc_configuration=RTCConfiguration(
                         {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
                     ),
-                    media_stream_constraints={"video": True, "audio": False},
+                    media_stream_constraints={"video": {
+            "width": {"min": 1280, "ideal": 1280, "max": 1920 },
+            "height": {"min": 720, "ideal": 720, "max": 1080}},
+                     "audio": False},
+                    desired_playing_state=True,
                 )
+
+                if st.button("Finalizar treino"):
+                    st.session_state["page"] = "Conclusao"
+                    st.rerun()
+
+    if st.session_state["page"] == "Conclusao":
+        st.title("Parabéns por finalizar o treinamento!")
         if st.button("Voltar ao menu"):
             st.session_state["page"] = "Home"
             st.rerun()
 
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     main()
