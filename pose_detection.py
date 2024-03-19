@@ -10,21 +10,14 @@ class Exercise:
         self.name = name
         self.start_angle = start_angle
         self.finish_angle = finish_angle
-
-
-exercises = [
-    Exercise(name="shoulder_press", start_angle=70, finish_angle=150),
-    Exercise(name="biceps_curl", start_angle=130, finish_angle=30),
-    Exercise(name="squat", start_angle=170, finish_angle=120),
-]
+        self.stage = None
+        self.count = 0
+        self.finished_rep = None
 
 
 def pose_detection(exercise: Exercise, img):
     mp_drawing = mp.solutions.drawing_utils
     mp_pose = mp.solutions.pose
-    count = 0
-    stage = None
-    finished_rep = None
 
     with mp_pose.Pose(
         min_detection_confidence=0.5, min_tracking_confidence=0.5
@@ -70,19 +63,19 @@ def pose_detection(exercise: Exercise, img):
                 )
 
             if start_condition:
-                stage = "start"
+                exercise.stage = "start"
 
-            if end_condition and stage == "start":
-                stage = "end"
-                count += 1
-                finished_rep = time.time()
+            if end_condition and exercise.stage == "start":
+                exercise.stage = "end"
+                exercise.count += 1
+                exercise.finished_rep = time.time()
 
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
-        if finished_rep and time.time() - finished_rep < 0.3:
+        if exercise.finished_rep and (time.time() - exercise.finished_rep) < 0.3:
             color = (0, 255, 0)
-        elif stage == "start":
+        elif exercise.stage == "start":
             color = (0, 255, 255)
         else:
             color = (245, 66, 230)
@@ -91,16 +84,13 @@ def pose_detection(exercise: Exercise, img):
             image,
             results.pose_landmarks,
             mp_pose.POSE_CONNECTIONS,
-            mp_drawing.DrawingSpec(
-                color=(245, 117, 66), thickness=2, circle_radius=2
-            ),
-            mp_drawing.DrawingSpec(
-                color=color, thickness=2, circle_radius=2),
+            mp_drawing.DrawingSpec(color=(245, 117, 66), thickness=2, circle_radius=2),
+            mp_drawing.DrawingSpec(color=color, thickness=2, circle_radius=2),
         )
 
         cv2.putText(
             image,
-            f"Contagem: {count}",
+            f"Contagem: {exercise.count}",
             (10, 30),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,

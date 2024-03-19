@@ -1,13 +1,21 @@
 # streamlit_app.py
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, RTCConfiguration, VideoTransformerBase
-from pose_detection import pose_detection, exercises
+from pose_detection import pose_detection, Exercise
+
+
+exercises = [
+    Exercise(name="shoulder_press", start_angle=70, finish_angle=150),
+    Exercise(name="biceps_curl", start_angle=130, finish_angle=30),
+    Exercise(name="squat", start_angle=170, finish_angle=120),
+]
 
 
 class VideoTransformer(VideoTransformerBase):
-    def recv(self, frame):
+    def transform(self, frame):
         img = frame.to_ndarray(format="bgr24")
-        return pose_detection(exercises[0], img)
+
+        return pose_detection(exercises[1], img)
 
 
 def main():
@@ -51,6 +59,8 @@ def main():
             if button_clicked:
                 st.session_state["page"] = "Webcam"
                 st.session_state["selected_exercise"] = option
+                for exercise in exercises:
+                    exercise.count = 0
                 st.rerun()
 
     if st.session_state["page"] == "Webcam":
@@ -70,8 +80,7 @@ def main():
                     key="pose-detection",
                     video_processor_factory=VideoTransformer,
                     rtc_configuration=RTCConfiguration(
-                        {"iceServers": [
-                            {"urls": ["stun:stun.l.google.com:19302"]}]}
+                        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
                     ),
                     media_stream_constraints={"video": True, "audio": False},
                 )
