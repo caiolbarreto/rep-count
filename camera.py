@@ -1,22 +1,7 @@
+# streamlit_app.py
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, RTCConfiguration
-import av
-import cv2
-
-cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
-
-
-class VideoProcessor:
-    def recv(self, frame):
-        frm = frame.to_ndarray(format="bgr24")
-
-        faces = cascade.detectMultiScale(
-            cv2.cvtColor(frm, cv2.COLOR_BGR2GRAY), 1.1, 3)
-
-        for x, y, w, h in faces:
-            cv2.rectangle(frm, (x, y), (x+w, y+h), (0, 255, 0), 3)
-
-        return av.VideoFrame.from_ndarray(frm, format='bgr24')
+from pose_detection import pose_detection, exercises
 
 
 def main():
@@ -53,11 +38,11 @@ def main():
         # Direcionamento para página específica do exercício
         if option:
             if option == "Desenvolvimento":
-                st.session_state['movimento'] = "Desenvolvimento"
+                st.session_state['movimento'] = 0
             elif option == "Rosca direta":
-                st.session_state['movimento'] = "RoscaDireta"
+                st.session_state['movimento'] = 1
             elif option == "Agachamento livre":
-                st.session_state['movimento'] = "AgachamentoLivre"
+                st.session_state['movimento'] = 2
 
             # Track if the button has been clicked
             button_clicked = st.button("Iniciar")
@@ -65,20 +50,39 @@ def main():
             # Check if the button has been clicked and change page accordingly
             if button_clicked:
                 st.session_state['page'] = "Webcam"
+                st.session_state['selected_exercise'] = option
                 st.rerun()
 
     if st.session_state['page'] == "Webcam":
         st.title("Clique em iniciar para começar sua sessão")
-        webrtc_streamer(key="key", video_processor_factory=VideoProcessor,
-                        rtc_configuration=RTCConfiguration(
-                            {"iceServers": [
-                                {"urls": ["stun:stun.l.google.com:19302"]}]}
-                        )
-                        )
+        selected_exercise = st.session_state.get('selected_exercise')
+        if selected_exercise:
+            exercise_index = None
+            if selected_exercise == "Desenvolvimento":
+                exercise_index = 0
+            elif selected_exercise == "Rosca direta":
+                exercise_index = 1
+            elif selected_exercise == "Agachamento livre":
+                exercise_index = 2
+
+            if exercise_index is not None:
+                webrtc_streamer(
+                    key="key",
+                    video_processor_factory=lambda: pose_detection(
+                        exercises[exercise_index]),
+                    rtc_configuration=RTCConfiguration(
+                        {
+                            "iceServers": [
+                                {"urls": ["stun:stun.l.google.com:19302"]}
+                            ]
+                        }
+                    ),
+                    media_stream_constraints={"audio": False},
+                )
         if st.button("Voltar ao menu"):
             st.session_state['page'] = "Home"
-            st.rerun()
+            st.rer
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
